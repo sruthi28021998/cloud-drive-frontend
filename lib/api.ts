@@ -54,6 +54,9 @@ export const api = {
 
   me: () => request('/api/auth/me'),
 
+  lookupByEmail: (email: string) =>
+    request(`/api/auth/lookup?email=${encodeURIComponent(email)}`),
+
   getRoot: () => request('/api/folders/root'),
 
   getFolder: (id: string) => request(`/api/folders/${id}`),
@@ -65,7 +68,7 @@ export const api = {
     request(`/api/folders/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) }),
 
   moveFolder: (id: string, parentId: string | null) =>
-  request(`/api/folders/${id}`, { method: 'PATCH', body: JSON.stringify({ parentId }) }),
+    request(`/api/folders/${id}`, { method: 'PATCH', body: JSON.stringify({ parentId }) }),
 
   deleteFolder: (id: string) => request(`/api/folders/${id}`, { method: 'DELETE' }),
 
@@ -85,7 +88,8 @@ export const api = {
 
   deleteFile: (id: string) => request(`/api/files/${id}`, { method: 'DELETE' }),
 
-  search: (q: string) => request(`/api/search?q=${encodeURIComponent(q)}`),
+  search: (q: string, type?: string, sort?: string) =>
+    request(`/api/search?q=${encodeURIComponent(q)}${type ? `&type=${encodeURIComponent(type)}` : ''}${sort ? `&sort=${encodeURIComponent(sort)}` : ''}`),
 
   getStarred: () => request('/api/search?starred=true'),
 
