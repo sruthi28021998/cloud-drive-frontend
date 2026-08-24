@@ -46,6 +46,11 @@ export default function FileGrid({
     onRefresh();
   };
 
+  const handleDownload = async (fileId: string) => {
+    const result = await api.getFile(fileId);
+    window.open(result.signedUrl, '_blank');
+  };
+
   const handleDragStart = (e: React.DragEvent, item: DragItem) => {
     e.dataTransfer.setData('application/json', JSON.stringify(item));
     e.dataTransfer.effectAllowed = 'move';
@@ -106,7 +111,8 @@ export default function FileGrid({
           >
             <p className="truncate text-sm font-medium">📄 {file.name}</p>
             <p className="text-xs text-gray-400">{formatSize(file.size_bytes)}</p>
-            <div className="absolute right-2 top-2 hidden gap-2 group-hover:flex">
+            <div className="absolute right-2 top-2 hidden flex-wrap justify-end gap-2 group-hover:flex">
+              <button onClick={() => handleDownload(file.id)} className="text-xs text-green-600">Download</button>
               <button onClick={() => handleStar(file.id)} className="text-xs text-yellow-500">★</button>
               <button onClick={() => setRenameTarget({ id: file.id, name: file.name, kind: 'file' })} className="text-xs text-gray-500">Rename</button>
               <button onClick={() => onShareFile(file.id)} className="text-xs text-blue-500">Share</button>
