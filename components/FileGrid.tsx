@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FileItem, FolderItem } from '@/lib/types';
 import RenameDialog from './RenameDialog';
+import FileThumbnail from './FileThumbnail';
+import VersionHistoryDialog from './VersionHistoryDialog';
 import { api } from '@/lib/api';
 
 type DragItem = { id: string; kind: 'file' | 'folder' };
@@ -24,6 +26,7 @@ export default function FileGrid({
   onRefresh: () => void;
 }) {
   const [renameTarget, setRenameTarget] = useState<{ id: string; name: string; kind: 'file' | 'folder' } | null>(null);
+  const [versionTarget, setVersionTarget] = useState<{ id: string; name: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [moveError, setMoveError] = useState('');
 
@@ -80,7 +83,7 @@ export default function FileGrid({
     <>
       {moveError && <p className="mb-2 text-sm text-red-600">{moveError}</p>}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {folders.map((folder) => (
           <div
             key={folder.id}
@@ -89,33 +92,44 @@ export default function FileGrid({
             onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
             onDragLeave={() => setDragOverId(null)}
             onDrop={(e) => handleDrop(e, folder.id)}
-            className={`group relative rounded-lg border p-4 hover:bg-gray-50 ${
+            className={`group rounded-lg border p-4 hover:bg-gray-50 ${
               dragOverId === folder.id ? 'border-black bg-gray-50' : ''
             }`}
           >
-            <Link href={`/folder/${folder.id}`}>
-              <p className="truncate text-sm font-medium">📁 {folder.name}</p>
-            </Link>
-            <div className="absolute right-2 top-2 hidden gap-2 group-hover:flex">
-              <button onClick={() => setRenameTarget({ id: folder.id, name: folder.name, kind: 'folder' })} className="text-xs text-gray-500">Rename</button>
-              <button onClick={() => onDeleteFolder(folder.id)} className="text-xs text-red-500">Delete</button>
+            <div className="flex items-center justify-between gap-2">
+              <Link href={`/folder/${folder.id}`} className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">📁 {folder.name}</p>
+              </Link>
+              <div className="flex shrink-0 gap-3 opacity-0 group-hover:opacity-100">
+                <button onClick={() => setRenameTarget({ id: folder.id, name: folder.name, kind: 'folder' })} className="text-xs text-gray-500">Rename</button>
+                <button onClick={() => onDeleteFolder(folder.id)} className="text-xs text-red-500">Delete</button>
+              </div>
             </div>
           </div>
         ))}
+
         {files.map((file) => (
           <div
             key={file.id}
             draggable
             onDragStart={(e) => handleDragStart(e, { id: file.id, kind: 'file' })}
-            className="group relative rounded-lg border p-4"
+            className="group rounded-lg border p-4"
           >
-            <p className="truncate text-sm font-medium">📄 {file.name}</p>
-            <p className="text-xs text-gray-400">{formatSize(file.size_bytes)}</p>
-            <div className="absolute right-2 top-2 hidden flex-wrap justify-end gap-2 group-hover:flex">
+            <FileThumbnail fileId={file.id} mimeType={file.mime_type} name={file.name} />
+
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">📄 {file.name}</p>
+                <p className="text-xs text-gray-400">{formatSize(file.size_bytes)}</p>
+              </div>
+            </div>
+
+            <div className="mt-2 flex shrink-0 flex-wrap items-center gap-3 opacity-0 group-hover:opacity-100">
               <button onClick={() => handleDownload(file.id)} className="text-xs text-green-600">Download</button>
               <button onClick={() => handleStar(file.id)} className="text-xs text-yellow-500">★</button>
               <button onClick={() => setRenameTarget({ id: file.id, name: file.name, kind: 'file' })} className="text-xs text-gray-500">Rename</button>
               <button onClick={() => onShareFile(file.id)} className="text-xs text-blue-500">Share</button>
+              <button onClick={() => setVersionTarget({ id: file.id, name: file.name })} className="text-xs text-purple-600">Versions</button>
               <button onClick={() => onDeleteFile(file.id)} className="text-xs text-red-500">Delete</button>
             </div>
           </div>
@@ -127,6 +141,14 @@ export default function FileGrid({
           initialName={renameTarget.name}
           onCancel={() => setRenameTarget(null)}
           onConfirm={handleRename}
+        />
+      )}
+
+      {versionTarget && (
+        <VersionHistoryDialog
+          fileId={versionTarget.id}
+          fileName={versionTarget.name}
+          onClose={() => setVersionTarget(null)}
         />
       )}
     </>
