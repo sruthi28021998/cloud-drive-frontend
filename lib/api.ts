@@ -108,6 +108,9 @@ export const api = {
   resolveLink: (token: string, password?: string) =>
     request(`/api/shares/link/${token}${password ? `?password=${encodeURIComponent(password)}` : ''}`),
 
+  resolveLinkDownload: (token: string, password?: string) =>
+    request(`/api/shares/link/${token}/download${password ? `?password=${encodeURIComponent(password)}` : ''}`),
+
   addStar: (data: { resourceType: string; resourceId: string }) =>
     request('/api/stars', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -117,5 +120,18 @@ export const api = {
   listTrash: () => request('/api/trash'),
 
   restoreFromTrash: (data: { resourceType: string; resourceId: string }) =>
-    request('/api/trash/restore', { method: 'POST', body: JSON.stringify(data) })
+    request('/api/trash/restore', { method: 'POST', body: JSON.stringify(data) }),
+
+  initVersionUpload: (fileId: string, data: { mimeType: string; sizeBytes: number }) =>
+    request(`/api/files/${fileId}/versions/init`, { method: 'POST', body: JSON.stringify(data) }),
+
+  completeVersionUpload: (fileId: string, data: { storageKey: string; versionNumber: number; sizeBytes: number; checksum?: string }) =>
+    request(`/api/files/${fileId}/versions/complete`, { method: 'POST', body: JSON.stringify(data) }),
+
+  listVersions: (fileId: string) => request(`/api/files/${fileId}/versions`),
+
+  revertVersion: (fileId: string, versionId: string) =>
+    request(`/api/files/${fileId}/versions/${versionId}/revert`, { method: 'POST' }),
+
+  getActivity: () => request('/api/activity')
 };
