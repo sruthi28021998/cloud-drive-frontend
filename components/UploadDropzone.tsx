@@ -9,34 +9,43 @@ export default function UploadDropzone({ folderId, onUploaded }: { folderId: str
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File) => {
-    setProgress(0);
-    try {
-      const { fileId, uploadUrl } = await api.initUpload({
-        name: file.name,
-        mimeType: file.type,
-        sizeBytes: file.size,
-        folderId
-      });
+  setProgress(0);
+  try {
+    const mimeType = file.type || 'application/octet-stream';
 
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', uploadUrl);
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-        };
-        xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error('Upload failed')));
-        xhr.onerror = () => reject(new Error('Upload failed'));
-        xhr.send(file);
-      });
+    const { fileId, uploadUrl } = await api.initUpload({
+      name: file.name,
+      mimeType,
+      sizeBytes: file.size,
+      folderId
+    });
 
-      await api.completeUpload({ fileId });
-      onUploaded();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setProgress(null);
-    }
-  };
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        console.log('Upload response status:', xhr.status);
+        console.log('Upload response body:', xhr.responseText);
+        xhr.status < 300 ? resolve() : reject(new Error(`Upload failed: ${xhr.status} - ${xhr.responseText}`));
+      };
+      xhr.onerror = () => {
+        console.log('Upload XHR error, status:', xhr.status);
+        reject(new Error('Upload failed (network error)'));
+      };
+      xhr.send(file);
+    });
+
+    await api.completeUpload({ fileId });
+    onUploaded();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setProgress(null);
+  }
+};
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
