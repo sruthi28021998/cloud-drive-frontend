@@ -17,6 +17,16 @@ export default function Sidebar() {
   return (
     <aside className="flex h-screen w-56 shrink-0 flex-col justify-between border-r p-4 text-sm">
       <div className="space-y-4">
+        <div className="flex items-center gap-2 px-1 pb-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded bg-blue-600 text-sm font-bold text-white">
+            C
+          </span>
+          <span className="text-base font-semibold">
+            <span className="text-black">Cloud</span>
+            <span className="text-blue-600">Drive</span>
+          </span>
+        </div>
+
         <SearchBar />
         <div className="space-y-1">
           <Link href="/" className="block rounded px-3 py-2 hover:bg-gray-100">📁 My Drive</Link>
