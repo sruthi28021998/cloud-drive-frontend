@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { FolderContents } from '@/lib/types';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -10,7 +11,10 @@ import Toolbar from '@/components/Toolbar';
 import UploadDialog from '@/components/UploadDialog';
 import NewFolderDialog from '@/components/NewFolderDialog';
 
-export default function FolderPage({ params }: { params: { id: string } }) {
+export default function FolderPage() {
+  const params = useParams<{ id: string }>();
+  const folderId = params.id;
+
   const [data, setData] = useState<FolderContents | null>(null);
   const [shareTarget, setShareTarget] = useState<string | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -18,14 +22,14 @@ export default function FolderPage({ params }: { params: { id: string } }) {
   const [showNewFolder, setShowNewFolder] = useState(false);
 
   const load = async () => {
-    const result = await api.getFolder(params.id);
+    const result = await api.getFolder(folderId);
     setData(result);
   };
 
-  useEffect(() => { load(); }, [params.id]);
+  useEffect(() => { load(); }, [folderId]);
 
   const handleCreateFolder = async (name: string) => {
-    await api.createFolder({ name, parentId: params.id });
+    await api.createFolder({ name, parentId: folderId });
     setShowNewFolder(false);
     load();
   };
@@ -53,11 +57,12 @@ export default function FolderPage({ params }: { params: { id: string } }) {
         onShareFile={(id) => setShareTarget(id)}
         onRefresh={load}
       />
+
       {shareTarget && (
         <ShareDialog resourceType="file" resourceId={shareTarget} onClose={() => setShareTarget(null)} />
       )}
       {showUpload && (
-        <UploadDialog folderId={params.id} onClose={() => setShowUpload(false)} onUploaded={load} />
+        <UploadDialog folderId={folderId} onClose={() => setShowUpload(false)} onUploaded={load} />
       )}
       {showNewFolder && (
         <NewFolderDialog onCancel={() => setShowNewFolder(false)} onConfirm={handleCreateFolder} />
