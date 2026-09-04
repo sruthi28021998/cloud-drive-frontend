@@ -13,6 +13,7 @@ type DragItem = { id: string; kind: 'file' | 'folder' };
 export default function FileGrid({
   folders,
   files,
+  view = 'grid',
   onDeleteFile,
   onDeleteFolder,
   onShareFile,
@@ -20,6 +21,7 @@ export default function FileGrid({
 }: {
   folders: FolderItem[];
   files: FileItem[];
+  view?: 'grid' | 'list';
   onDeleteFile: (id: string) => void;
   onDeleteFolder: (id: string) => void;
   onShareFile: (id: string) => void;
@@ -79,62 +81,121 @@ export default function FileGrid({
     }
   };
 
+  const fileActionButtons = (file: FileItem) => (
+    <>
+      <button onClick={() => handleDownload(file.id)} className="text-xs text-green-600">Download</button>
+      <button onClick={() => handleStar(file.id)} className="text-xs text-yellow-500">★</button>
+      <button onClick={() => setRenameTarget({ id: file.id, name: file.name, kind: 'file' })} className="text-xs text-gray-500">Rename</button>
+      <button onClick={() => onShareFile(file.id)} className="text-xs text-blue-500">Share</button>
+      <button onClick={() => setVersionTarget({ id: file.id, name: file.name })} className="text-xs text-purple-600">Versions</button>
+      <button onClick={() => onDeleteFile(file.id)} className="text-xs text-red-500">Delete</button>
+    </>
+  );
+
+  const folderActionButtons = (folder: FolderItem) => (
+    <>
+      <button onClick={() => setRenameTarget({ id: folder.id, name: folder.name, kind: 'folder' })} className="text-xs text-gray-500">Rename</button>
+      <button onClick={() => onDeleteFolder(folder.id)} className="text-xs text-red-500">Delete</button>
+    </>
+  );
+
   return (
     <>
       {moveError && <p className="mb-2 text-sm text-red-600">{moveError}</p>}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-        {folders.map((folder) => (
-          <div
-            key={folder.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, { id: folder.id, kind: 'folder' })}
-            onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
-            onDragLeave={() => setDragOverId(null)}
-            onDrop={(e) => handleDrop(e, folder.id)}
-            className={`group rounded-lg border p-4 hover:bg-gray-50 ${
-              dragOverId === folder.id ? 'border-black bg-gray-50' : ''
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <Link href={`/folder/${folder.id}`} className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">📁 {folder.name}</p>
+      {view === 'list' ? (
+        <div className="overflow-hidden rounded-lg border">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-4 border-b bg-gray-50 px-4 py-2 text-xs font-medium text-gray-500">
+            <span>Name</span>
+            <span>Size</span>
+            <span>Actions</span>
+          </div>
+
+          {folders.map((folder) => (
+            <div
+              key={folder.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, { id: folder.id, kind: 'folder' })}
+              onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
+              onDragLeave={() => setDragOverId(null)}
+              onDrop={(e) => handleDrop(e, folder.id)}
+              className={`group grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b px-4 py-2 hover:bg-gray-50 ${
+                dragOverId === folder.id ? 'bg-gray-100' : ''
+              }`}
+            >
+              <Link href={`/folder/${folder.id}`} className="min-w-0 truncate text-sm font-medium">
+                📁 {folder.name}
               </Link>
-              <div className="flex shrink-0 gap-3 opacity-0 group-hover:opacity-100">
-                <button onClick={() => setRenameTarget({ id: folder.id, name: folder.name, kind: 'folder' })} className="text-xs text-gray-500">Rename</button>
-                <button onClick={() => onDeleteFolder(folder.id)} className="text-xs text-red-500">Delete</button>
+              <span className="text-xs text-gray-400">—</span>
+              <div className="flex gap-3 opacity-0 group-hover:opacity-100">
+                {folderActionButtons(folder)}
               </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {files.map((file) => (
-          <div
-            key={file.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, { id: file.id, kind: 'file' })}
-            className="group rounded-lg border p-4"
-          >
-            <FileThumbnail fileId={file.id} mimeType={file.mime_type} name={file.name} />
-
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">📄 {file.name}</p>
-                <p className="text-xs text-gray-400">{formatSize(file.size_bytes)}</p>
+          {files.map((file) => (
+            <div
+              key={file.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, { id: file.id, kind: 'file' })}
+              className="group grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b px-4 py-2 last:border-b-0 hover:bg-gray-50"
+            >
+              <span className="min-w-0 truncate text-sm font-medium">📄 {file.name}</span>
+              <span className="text-xs text-gray-400">{formatSize(file.size_bytes)}</span>
+              <div className="flex flex-wrap gap-3 opacity-0 group-hover:opacity-100">
+                {fileActionButtons(file)}
               </div>
             </div>
-
-            <div className="mt-2 flex shrink-0 flex-wrap items-center gap-3 opacity-0 group-hover:opacity-100">
-              <button onClick={() => handleDownload(file.id)} className="text-xs text-green-600">Download</button>
-              <button onClick={() => handleStar(file.id)} className="text-xs text-yellow-500">★</button>
-              <button onClick={() => setRenameTarget({ id: file.id, name: file.name, kind: 'file' })} className="text-xs text-gray-500">Rename</button>
-              <button onClick={() => onShareFile(file.id)} className="text-xs text-blue-500">Share</button>
-              <button onClick={() => setVersionTarget({ id: file.id, name: file.name })} className="text-xs text-purple-600">Versions</button>
-              <button onClick={() => onDeleteFile(file.id)} className="text-xs text-red-500">Delete</button>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+          {folders.map((folder) => (
+            <div
+              key={folder.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, { id: folder.id, kind: 'folder' })}
+              onDragOver={(e) => { e.preventDefault(); setDragOverId(folder.id); }}
+              onDragLeave={() => setDragOverId(null)}
+              onDrop={(e) => handleDrop(e, folder.id)}
+              className={`group rounded-lg border p-4 hover:bg-gray-50 ${
+                dragOverId === folder.id ? 'border-black bg-gray-50' : ''
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <Link href={`/folder/${folder.id}`} className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">📁 {folder.name}</p>
+                </Link>
+                <div className="flex shrink-0 gap-3 opacity-0 group-hover:opacity-100">
+                  {folderActionButtons(folder)}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+
+          {files.map((file) => (
+            <div
+              key={file.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, { id: file.id, kind: 'file' })}
+              className="group rounded-lg border p-4"
+            >
+              <FileThumbnail fileId={file.id} mimeType={file.mime_type} name={file.name} />
+
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">📄 {file.name}</p>
+                  <p className="text-xs text-gray-400">{formatSize(file.size_bytes)}</p>
+                </div>
+              </div>
+
+              <div className="mt-2 flex shrink-0 flex-wrap items-center gap-3 opacity-0 group-hover:opacity-100">
+                {fileActionButtons(file)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {renameTarget && (
         <RenameDialog
