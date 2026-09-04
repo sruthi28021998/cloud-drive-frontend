@@ -61,6 +61,8 @@ export const api = {
 
   getFolder: (id: string) => request(`/api/folders/${id}`),
 
+  getStorageUsage: () => request('/api/storage-usage'),
+
   createFolder: (data: { name: string; parentId: string | null }) =>
     request('/api/folders', { method: 'POST', body: JSON.stringify(data) }),
 

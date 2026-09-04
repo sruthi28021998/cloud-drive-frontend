@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SearchBar from './SearchBar';
+import StorageIndicator from './StorageIndicator';
 import { api } from '@/lib/api';
 
 export default function Sidebar() {
@@ -25,12 +26,15 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <button
-        onClick={handleLogout}
-        className="rounded px-3 py-2 text-left text-red-500 hover:bg-gray-100"
-      >
-        Logout
-      </button>
+      <div className="space-y-3">
+        <StorageIndicator />
+        <button
+          onClick={handleLogout}
+          className="w-full rounded px-3 py-2 text-left text-red-500 hover:bg-gray-100"
+        >
+          Logout
+        </button>
+      </div>
     </aside>
   );
 }
