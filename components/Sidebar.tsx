@@ -36,13 +36,13 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 border-t pt-3">
         <StorageIndicator />
         <button
           onClick={handleLogout}
-          className="w-full rounded px-3 py-2 text-left text-red-500 hover:bg-gray-100"
+          className="flex w-full items-center justify-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
         >
-          Logout
+          🚪 Logout
         </button>
       </div>
     </aside>
